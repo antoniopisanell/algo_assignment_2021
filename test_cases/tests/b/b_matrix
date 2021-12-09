@@ -1,0 +1,97 @@
+import pathlib
+import sys
+
+def add_edge(adj, src, dest, val):
+    adj[src][dest] = val
+    adj[dest][src] = val
+
+def BFS(adj, src, dest, v, pred, dist, c_a):
+    visited = [False] * v
+    queue = []
+
+    visited[src] = True
+    dist[src] = 0
+    queue.append(src)
+
+    while queue:
+        u = queue.pop(0)
+        for i, k in enumerate(adj[u]):
+            print(str(i) + " " + str(k))
+            if(adj[u][k] > 0) and not visited[k]:
+                visited[k] = True
+                if u in c_a:
+                    if k in c_a:
+                        dist[k] = dist[u] + 2
+                        if dest in c_a:
+                            dist[dest] = dist[u] + 2
+                            return True
+                    else:
+                        dist[k] = dist[u] + 1
+                else:
+                    dist[k] = dist[u] + 1
+
+                pred[k] = u
+                queue.append(k)
+
+            if (k == dest):
+                return True
+    return False
+
+def printShortestDistance(adj, s, dest, v, c_a):
+    pred=[-1] * v 
+    dist=[2*v] * v
+
+    c = ""
+    if (BFS(adj, s, dest, v, pred, dist, c_a) == False):
+        c = "Impossible"
+    else: 
+        c = dist[dest]
+    
+    print(c)
+        
+lines = []
+
+"""
+for line in sys.stdin:
+    if line == '': # If empty string is read then stop the loop
+        break
+    lines.append(line.rstrip('\n'))
+"""
+url = pathlib.Path(__file__).parent.resolve()
+file = str(url) + "/" + "04"
+
+with open(file) as f:
+    for line in f:
+        lines.append(line.rstrip('\n'))
+
+v, nb_train_routes, nb_cities_airports, starting_city, arrival_city = [int(i) for i in lines[0].split(" ")]
+starting_city -= 1
+arrival_city -= 1
+cities_with_airport = []
+
+if lines[1] != "":
+    cities_with_airport = [i-1 for i in [int(i) for i in lines[1].split(" ")]]
+
+adj = [[-1 for i in range(v)] for i in range(v)]
+for i in range(v):
+    for j in range(v):
+        if i == j:
+            adj[i][j] = 0
+        else : 
+            adj[i][j] = -1
+
+print(adj)
+for c in range(0, len(cities_with_airport)):
+    for c2 in range(c, len(cities_with_airport)):
+        if c2 > c:
+            add_edge(adj, cities_with_airport[c], cities_with_airport[c2], 2)
+
+for l in lines[2:]:
+    a, b =  [i-1 for i in [int(i) for i in l.split(" ")]]
+    add_edge(adj, a, b, 1)
+
+
+if adj[starting_city][arrival_city] > -1:
+    print(adj[starting_city][arrival_city])
+else:
+    printShortestDistance(adj, starting_city, arrival_city, v, cities_with_airport)

@@ -5,9 +5,10 @@ file = str(url) + "/" + "05"
 lines = []
 red_sat = blue_sat = 0
 
-with open(file) as f:
-    for line in f:
-        lines.append(line.rstrip('\n'))
+for line in sys.stdin:
+    if line == '': # If empty string is read then stop the loop
+        break
+    lines.append(line.rstrip('\n'))
 
 nb_island, nb_proposals = lines[0].split(" ")
 

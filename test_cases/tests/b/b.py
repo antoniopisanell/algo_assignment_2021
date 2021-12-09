@@ -1,65 +1,86 @@
 import pathlib
 import sys
-url = pathlib.Path(__file__).parent.resolve()
-file = str(url) + "/" + "01"
+
+def add_edge(adj, src, dest):
+    adj[src].add(dest)
+    adj[dest].add(src)
+
+def BFS(adj, src, dest, v, pred, dist, c_a):
+    visited = [False] * (v+1)
+    queue = []
+
+    visited[src] = True
+    dist[src] = 0
+    queue.append(src)
+
+    while queue:
+        u = queue.pop(0)
+        for i in adj[u]: #for all neigbours of u
+            if not visited[i]: #if not visited
+                visited[i] = True
+
+                dist[i] = dist[u] + 1
+                pred[i] = u
+                queue.append(i)
+
+            if (i == dest):
+                return True
+    return False
+
+def printShortestDistance(adj, s, dest, v, minimum_cost, c_a):
+    pred=[-1] * (v +1)
+    dist=[2*v] * (v+1)
+
+    c = ""
+    if (BFS(adj, s, dest, v, pred, dist, c_a) == False):
+        c = "Impossible"
+    
+    if(dist[dest] > minimum_cost):
+        c = minimum_cost
+    else: 
+        if c != "Impossible":
+            c = dist[dest]
+    
+    print(c)
+        
 lines = []
+
+for line in sys.stdin:
+    if line == '': # If empty string is read then stop the loop
+        break
+    lines.append(line.rstrip('\n'))
+"""
+url = pathlib.Path(__file__).parent.resolve()
+file = str(url) + "/" + "05"
 
 with open(file) as f:
     for line in f:
         lines.append(line.rstrip('\n'))
+"""
 
-nb_cities, nb_train_routes, nb_cities_airports, starting_city, arrival_city = list(map(int, lines[0].split(" ")))
+v, nb_train_routes, nb_cities_airports, starting_city, arrival_city = [int(i) for i in lines[0].split(" ")]
 starting_city -= 1
 arrival_city -= 1
-cities_with_airport = list(map(lambda i: i-1, list(map(int, lines[1].split(" ")))))
+cities_with_airport = []
 
-G = [None] * nb_cities
+if lines[1] != "":
+    cities_with_airport = [i-1 for i in [int(i) for i in lines[1].split(" ")]]
+
+adj = [set() for i in range(v+1)]
 for l in lines[2:]:
-    a, b = list(map(lambda i: i-1, list(map(int, l.split(" ")))))
-    print(str(a) + " / " + str(b))
-    if G[a] == None:
-        G[a] = []
-    if G[b] == None:
-        G[b] = []
+    a, b =  [i-1 for i in [int(i) for i in l.split(" ")]]
+    add_edge(adj, a, b)
 
-    G[a].append(b)
-    G[b].append(a)
+for c in cities_with_airport:
+    add_edge(adj, v, c)
 
-minimum_cost = sys.maxsize
-
-if starting_city in cities_with_airport and arrival_city in cities_with_airport:
-    minimum_cost = 2
+c = 0
+if starting_city == arrival_city:
+    print(c)
+elif starting_city in cities_with_airport and arrival_city in cities_with_airport:
+    minimum_cost = 2    
+    printShortestDistance(adj, starting_city, arrival_city, v, minimum_cost, cities_with_airport)
 elif nb_train_routes == 0:
     print("Impossible")
-
-def search_node(actual_node, finishing_node, parent_node, current_cost):
-    if current_cost > minimum_cost:
-        return minimum_cost
-    if actual_node == finishing_node:
-        return current_cost
-
-    for n in G[actual_node]:
-        if n != parent_node:
-            c = search_node(n, finishing_node, actual_node, current_cost+1)
-    
-    return -1
-
-def search_node_for(actual_node, finishing_node, parent_node, current_cost):
-    for n in G[actual_node]:
-        for m in G[n]:
-            if m != actual_node:
-                if current_cost > minimum_cost:
-                    return minimum_cost
-                if m == finishing_node:
-                    return current_cost
-
-            c = search_node(n, finishing_node, actual_node, current_cost+1)
-    
-    return -1
-
-cost = search_node(starting_city, arrival_city, starting_city, 0)
-
-if cost == -1:
-    print("Impossible")
-
-print(cost)
+else:
+    printShortestDistance(adj, starting_city, arrival_city, v, sys.maxsize, cities_with_airport)
